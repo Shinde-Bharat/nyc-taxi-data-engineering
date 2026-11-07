@@ -1,0 +1,15 @@
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data
+data/raw/
+data/processed/
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
