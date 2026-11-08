@@ -3,6 +3,8 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 
 # --------------------------------------------------
@@ -10,12 +12,12 @@ import pandas as pd
 # --------------------------------------------------
 
 RAW_FILE = Path("data/raw/yellow_tripdata_2025-01.parquet")
-
 PROCESSED_FILE = Path(
     "data/processed/yellow_tripdata_2025-01_cleaned.parquet"
 )
-
 LOG_FILE = Path("docs/etl_pipeline.log")
+
+BATCH_SIZE = 100_000
 
 
 # --------------------------------------------------
@@ -30,47 +32,29 @@ logging.basicConfig(
     handlers=[
         logging.FileHandler(LOG_FILE, encoding="utf-8"),
         logging.StreamHandler()
-    ]
+    ],
+    force=True,
 )
 
 logger = logging.getLogger(__name__)
 
 
 # --------------------------------------------------
-# EXTRACT
-# --------------------------------------------------
-
-def extract_data(file_path):
-    logger.info("Starting data extraction")
-
-    if not file_path.exists():
-        raise FileNotFoundError(f"Dataset not found: {file_path}")
-
-    df = pd.read_parquet(file_path)
-
-    logger.info("Extracted %s records", len(df))
-
-    return df
-
-
-# --------------------------------------------------
 # VALIDATE
 # --------------------------------------------------
 
-def validate_data(df):
-    logger.info("Starting data validation")
-
+def validate_columns(columns):
     required_columns = [
         "tpep_pickup_datetime",
         "tpep_dropoff_datetime",
         "trip_distance",
         "fare_amount",
-        "total_amount"
+        "total_amount",
     ]
 
     missing_columns = [
         column for column in required_columns
-        if column not in df.columns
+        if column not in columns
     ]
 
     if missing_columns:
@@ -84,16 +68,12 @@ def validate_data(df):
 # --------------------------------------------------
 
 def transform_data(df):
-    logger.info("Starting data transformation")
-
     initial_records = len(df)
 
-    # Remove exact duplicate records
+    # Remove duplicates within the current batch
     df = df.drop_duplicates()
 
     duplicates_removed = initial_records - len(df)
-
-    logger.info("Duplicates removed: %s", duplicates_removed)
 
     # Calculate trip duration in minutes
     df["trip_duration_minutes"] = (
@@ -112,25 +92,7 @@ def transform_data(df):
     # Remove invalid records
     df = df.loc[~invalid_records].copy()
 
-    logger.info("Invalid records removed: %s", rejected_records)
-    logger.info("Records after transformation: %s", len(df))
-
-    return df
-
-
-# --------------------------------------------------
-# LOAD
-# --------------------------------------------------
-
-def load_data(df, output_path):
-    logger.info("Starting data loading")
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    df.to_parquet(output_path, index=False)
-
-    logger.info("Processed data saved to %s", output_path)
-    logger.info("Loaded %s records", len(df))
+    return df, duplicates_removed, rejected_records
 
 
 # --------------------------------------------------
@@ -140,13 +102,69 @@ def load_data(df, output_path):
 def run_pipeline():
     logger.info("========== ETL PIPELINE STARTED ==========")
 
-    df = extract_data(RAW_FILE)
+    if not RAW_FILE.exists():
+        raise FileNotFoundError(f"Dataset not found: {RAW_FILE}")
 
-    validate_data(df)
+    parquet_file = pq.ParquetFile(RAW_FILE)
 
-    df = transform_data(df)
+    validate_columns(parquet_file.schema.names)
 
-    load_data(df, PROCESSED_FILE)
+    PROCESSED_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    total_input = 0
+    total_output = 0
+    total_duplicates = 0
+    total_rejected = 0
+
+    writer = None
+
+    try:
+        for batch_number, batch in enumerate(
+            parquet_file.iter_batches(batch_size=BATCH_SIZE),
+            start=1,
+        ):
+            df = batch.to_pandas()
+
+            total_input += len(df)
+
+            df, duplicates, rejected = transform_data(df)
+
+            total_duplicates += duplicates
+            total_rejected += rejected
+            total_output += len(df)
+
+            if not df.empty:
+                table = pa.Table.from_pandas(df, preserve_index=False)
+
+                if writer is None:
+                    writer = pq.ParquetWriter(
+                        PROCESSED_FILE,
+                        table.schema,
+                    )
+                else:
+                    table = table.cast(writer.schema, safe=False)
+
+                writer.write_table(table)
+
+            logger.info(
+                "Batch %s | Input: %s | Output: %s",
+                batch_number,
+                len(batch),
+                len(df),
+            )
+
+            del df
+            del batch
+
+    finally:
+        if writer is not None:
+            writer.close()
+
+    logger.info("Input records: %s", total_input)
+    logger.info("Duplicates removed: %s", total_duplicates)
+    logger.info("Invalid records removed: %s", total_rejected)
+    logger.info("Output records: %s", total_output)
+    logger.info("Processed data saved to %s", PROCESSED_FILE)
 
     logger.info("========== ETL PIPELINE COMPLETED ==========")
 
