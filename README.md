@@ -310,6 +310,25 @@ Monitor the execution of:
 pandas_etl → global_deduplication → validate_data
 ```
 
+## 📊 Power BI Dashboard
+
+Interactive analytics dashboard built using Power BI Desktop.
+
+<img width="3075" height="1763" alt="NYC_Taxi_Analytics_page-0001" src="https://github.com/user-attachments/assets/9b92196d-645a-4de9-b7a2-7ee09f80031b" />
+
+
+### Dashboard Insights
+- 🚕 Total Taxi Trips
+- 💰 Total Taxi Revenue
+- 📏 Average Trip Distance
+- ⏱️ Average Trip Duration
+- 📈 Daily Revenue Trends
+- 💳 Payment Type Distribution
+- 👥 Passenger Count Analysis
+- 📍 Pickup Location Analysis
+- 🚖 Ratecode Analysis
+  
+
 ## 📈 Future Enhancements
 
 - ☁️ AWS S3 data storage.
