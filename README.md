@@ -1,104 +1,203 @@
-# NYC Taxi Data Engineering Pipeline 🚖
+# 🚖 NYC Taxi Data Engineering Project
 
-An end-to-end Data Engineering project that processes NYC Yellow Taxi trip data using **Pandas, PySpark, DuckDB, and Apache Airflow**. The pipeline performs data cleaning, global deduplication, and data quality validation while orchestrating the workflow through Airflow.
+![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)
+![Pandas](https://img.shields.io/badge/Pandas-ETL-150458?logo=pandas)
+![PySpark](https://img.shields.io/badge/PySpark-Processing-orange?logo=apachespark)
+![DuckDB](https://img.shields.io/badge/DuckDB-Analytics-yellow?logo=duckdb)
+![Airflow](https://img.shields.io/badge/Apache_Airflow-Orchestration-017CEE?logo=apacheairflow)
+![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker)
+![SQL](https://img.shields.io/badge/SQL-Analytics-blue)
+![Status](https://img.shields.io/badge/Project-Completed-success)
 
 ## 📌 Project Overview
 
-This project demonstrates a practical data engineering workflow using a real-world NYC taxi dataset.
+This project implements an end-to-end data engineering pipeline using the **NYC TLC Yellow Taxi January 2025 dataset**.
 
-The pipeline:
-- Reads NYC Yellow Taxi trip data in Parquet format.
-- Cleans and transforms the raw dataset using Pandas.
-- Processes data using PySpark for distributed processing.
-- Performs global deduplication using DuckDB.
-- Validates the processed dataset through automated checks.
-- Orchestrates the ETL workflow using Apache Airflow.
-- Stores cleaned data in Parquet format for downstream analytics.
+The pipeline performs batch data processing, data cleaning, deduplication, data quality validation, and analytical SQL queries.
+
+The project demonstrates practical implementation of data engineering concepts using Python, Pandas, PySpark, DuckDB, Apache Airflow, and Docker.
 
 ## 🏗️ Architecture
 
 ```mermaid
 flowchart TD
-    A[NYC TLC Yellow Taxi Dataset] --> B[Pandas ETL]
-    B --> C[Cleaned Parquet Dataset]
-    C --> D[DuckDB Global Deduplication]
-    D --> E[Data Quality Validation]
-    E --> F[Verified Processed Dataset]
-    G[Apache Airflow] -. Orchestrates .-> B
-    G -. Orchestrates .-> D
-    G -. Orchestrates .-> E
+    A["Apache Airflow"]
+    B["NYC TLC Yellow Taxi Dataset"]
+    C["Pandas ETL"]
+    D["Cleaned Parquet Dataset"]
+    E["DuckDB Global Deduplication"]
+    F["Data Quality Validation"]
+    G["Verified Processed Dataset"]
+
+    A -. Orchestrates .-> C
+    A -. Orchestrates .-> E
+    A -. Orchestrates .-> F
+
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
 ```
 
-## 🔄 Pipeline Workflow
+### 🔄 Airflow DAG Workflow
 
-The Apache Airflow DAG consists of three sequential tasks:
+```mermaid
+flowchart LR
+    A["🐼 pandas_etl"] --> B["🦆 global_deduplication"]
+    B --> C["🛡️ validate_data"]
+```
 
-1. **Pandas ETL**
-   - Reads raw Parquet data in batches.
-   - Performs data cleaning and transformation.
-   - Calculates trip duration.
-   - Removes invalid records.
-   - Writes cleaned data to Parquet.
+## 🎯 Project Objectives
 
-2. **DuckDB Global Deduplication**
-   - Performs global duplicate detection across the processed dataset.
-   - Uses DuckDB to efficiently process Parquet data.
-   - Produces the deduplicated dataset.
+- 📥 Process large-scale NYC Taxi trip data.
+- 🧹 Clean invalid records and transform raw data.
+- ⚡ Implement batch processing using Pandas and PyArrow.
+- 🔥 Implement data processing using PySpark.
+- 🦆 Perform global deduplication using DuckDB.
+- 🛡️ Validate processed data using automated quality checks.
+- 🔄 Automate ETL execution using Apache Airflow.
+- 🐳 Run Airflow using Docker containers.
+- 📊 Perform analytical queries using SQL.
 
-3. **Data Validation**
-   - Checks raw and processed record counts.
-   - Verifies duplicate records.
-   - Checks invalid trip durations.
-   - Checks negative trip distances.
-   - Reports output dataset size.
-
-The tasks execute sequentially:
-
-`pandas_etl → global_deduplication → validate_data`
-
-## 📊 Dataset
+## 📂 Dataset
 
 **Source:** NYC Taxi & Limousine Commission (TLC)
 
-Dataset: January 2025 Yellow Taxi Trip Records
+**Dataset:** Yellow Taxi Trip Records – January 2025
 
-Official dataset source:  
-https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+- Format: Parquet
+- Raw Records: 3,475,226
+- Raw Columns: 20
+- Processed Records: 3,473,175
+- Processed Columns: 21
 
-| Attribute | Value |
-|---|---|
-| Dataset | January 2025 Yellow Taxi |
-| Format | Parquet |
-| Raw Records | 3,475,226 |
-| Raw Columns | 20 |
-| Processed Records | 3,473,175 |
-| Processed Columns | 21 |
+📥 Dataset: [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
 
 ## 🛠️ Technologies Used
 
 | Technology | Purpose |
 |---|---|
-| Python | ETL implementation |
-| Pandas | Data cleaning and transformation |
-| PySpark | Distributed data processing |
-| DuckDB | Global deduplication and analytical processing |
+| Python | Data processing and scripting |
+| Pandas | ETL and data transformation |
+| PyArrow | Batch processing and Parquet operations |
+| PySpark | Distributed data processing implementation |
+| DuckDB | SQL analytics and global deduplication |
 | Apache Airflow | Workflow orchestration |
-| PyArrow | Parquet processing |
 | Docker | Containerized Airflow environment |
-| SQL | Data analysis |
+| SQL | Analytical queries |
 | Git & GitHub | Version control |
+
+## ⚙️ ETL Pipeline
+
+### 1️⃣ Data Inspection
+
+- Inspect dataset structure.
+- Identify column names and data types.
+- Understand dataset characteristics.
+
+### 2️⃣ Data Profiling
+
+- Analyze missing values.
+- Examine data distributions.
+- Identify potential data quality issues.
+
+### 3️⃣ Data Cleaning
+
+- Remove records with invalid trip durations.
+- Remove records with negative trip distances.
+- Calculate trip duration.
+- Transform and prepare dataset for analysis.
+
+### 4️⃣ Batch Processing
+
+- Process records in batches of 100,000.
+- Use PyArrow Parquet readers and writers.
+- Reduce memory consumption during processing.
+
+### 5️⃣ Global Deduplication
+
+- Perform global deduplication using DuckDB.
+- Identify duplicate records across the complete processed dataset.
+- Generate deduplicated Parquet output.
+
+### 6️⃣ Data Quality Validation
+
+- Verify record counts.
+- Check duplicate records.
+- Validate trip duration.
+- Validate trip distance.
+- Verify output dataset.
+
+## 📊 ETL Results
+
+| Metric | Result |
+|---|---:|
+| Raw Records | 3,475,226 |
+| Processed Records | 3,473,175 |
+| Records Removed | 2,051 |
+| Processed Columns | 21 |
+| Duplicate Records | 0 |
+| Invalid Trip Duration | 0 |
+| Negative Trip Distance | 0 |
+| Output File Size | 75.06 MB |
+
+### ✅ Data Quality
+
+- ✔ Invalid trip durations removed.
+- ✔ Negative trip distances removed.
+- ✔ Global duplicate check completed.
+- ✔ Final dataset validated successfully.
+- ✔ Processed dataset ready for analytical queries.
+
+## 🔥 PySpark Implementation
+
+A separate PySpark ETL implementation is included to demonstrate data processing using Apache Spark.
+
+The project also includes an ETL comparison script to compare processing implementations.
+
+**Note:** PySpark ETL is implemented separately and is not currently part of the Airflow DAG.
+
+## 🔄 Apache Airflow Orchestration
+
+The Airflow DAG automates the following tasks:
+
+1. `pandas_etl` – Execute Pandas ETL pipeline.
+2. `global_deduplication` – Perform DuckDB global deduplication.
+3. `validate_data` – Validate processed dataset.
+
+All three tasks have been successfully executed through the Airflow DAG.
+
+## 🦆 SQL Analytics
+
+SQL queries are implemented using DuckDB.
+
+### 📁 SQL Scripts
+
+- `01_basic_analytics.sql`
+- `02_daily_analytics.sql`
+
+These scripts demonstrate analytical queries on the processed taxi dataset.
 
 ## 📁 Project Structure
 
 ```text
 nyc-taxi-data-engineering/
 │
-├── airflow/
-│   └── dags/
-│       └── nyc_taxi_etl.py
-│
 ├── dags/
 │   └── nyc_taxi_etl.py
+│
+├── data/
+│   ├── raw/
+│   │   └── yellow_tripdata_2025-01.parquet
+│   │
+│   └── processed/
+│       ├── yellow_tripdata_2025-01_cleaned.parquet
+│       └── yellow_tripdata_2025-01_deduplicated.parquet
+│
+├── sql/
+│   ├── 01_basic_analytics.sql
+│   └── 02_daily_analytics.sql
 │
 ├── src/
 │   ├── inspect_dataset.py
@@ -112,143 +211,124 @@ nyc-taxi-data-engineering/
 │   ├── run_sql.py
 │   └── run_daily_analytics.py
 │
-├── sql/
-│   ├── 01_basic_analytics.sql
-│   └── 02_daily_analytics.sql
-│
-├── data/
-│   ├── raw/
-│   └── processed/
-│
-├── Dockerfile
 ├── docker-compose.yaml
+├── Dockerfile
 ├── .gitignore
 └── README.md
 ```
 
-## ⚙️ Setup and Execution
+## 🚀 Project Setup
 
-### 1. Clone the repository
+### 1️⃣ Clone Repository
 
 ```bash
 git clone https://github.com/Shinde-Bharat/nyc-taxi-data-engineering.git
 cd nyc-taxi-data-engineering
 ```
 
-### 2. Create a Python virtual environment
+### 2️⃣ Create Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the environment:
+### 3️⃣ Activate Virtual Environment
 
-**Windows PowerShell**
+**Windows PowerShell:**
+
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+### 4️⃣ Install Dependencies
 
 ```bash
-pip install pandas pyarrow pyspark duckdb
+pip install pandas pyarrow duckdb pyspark
 ```
 
-### 3. Download the dataset
+### 5️⃣ Download Dataset
 
-Download the January 2025 Yellow Taxi Parquet file from the official NYC TLC website.
-
-Place it inside:
+Download January 2025 Yellow Taxi data from the NYC TLC website and place it inside:
 
 ```text
-data/raw/yellow_tripdata_2025-01.parquet
+data/raw/
 ```
 
-### 4. Run the ETL pipeline
+### 6️⃣ Run Pandas ETL
 
 ```bash
 python src/etl_pipeline.py
 ```
 
-### 5. Run global deduplication
+### 7️⃣ Run Global Deduplication
 
 ```bash
 python src/global_deduplication.py
 ```
 
-### 6. Verify the processed dataset
+### 8️⃣ Validate Dataset
 
 ```bash
 python src/verify_etl.py
 ```
 
-### 7. Run Apache Airflow
+### 9️⃣ Run SQL Analytics
 
-Start the Airflow environment using Docker Compose:
+```bash
+python src/run_sql.py
+```
+
+## 🐳 Run Apache Airflow Using Docker
+
+### Build Docker Image
+
+```bash
+docker compose build
+```
+
+### Start Airflow
 
 ```bash
 docker compose up -d
 ```
 
-Access the Airflow UI:
+### Access Airflow UI
 
+```text
 http://localhost:8081
+```
 
-Enable and trigger the DAG:
+Trigger the DAG:
 
-`nyc_taxi_etl_pipeline`
+```text
+nyc_taxi_etl_pipeline
+```
 
-The pipeline automatically executes:
+Monitor the execution of:
 
-- `pandas_etl`
-- `global_deduplication`
-- `validate_data`
+```text
+pandas_etl → global_deduplication → validate_data
+```
 
-## ✅ Data Quality Results
+## 📈 Future Enhancements
 
-Final verification results from the processed dataset:
+- ☁️ AWS S3 data storage.
+- 🔍 AWS Athena analytical queries.
+- 📊 Power BI dashboard development.
+- ⚡ Large-scale distributed processing.
+- 🔄 Automated scheduled data ingestion.
+- 📉 Advanced taxi trip analytics.
 
-| Validation | Result |
-|---|---:|
-| Raw Records | 3,475,226 |
-| Processed Records | 3,473,175 |
-| Records Removed | 2,051 |
-| Processed Dataset Shape | 3,473,175 × 21 |
-| Duplicate Records | 0 |
-| Invalid Trip Duration | 0 |
-| Negative Trip Distance | 0 |
-| Output File Size | 75.06 MB |
-
-**Verification Status: PASSED**
-
-All three Apache Airflow tasks completed successfully.
-
-## 📈 SQL Analytics
-
-The project also includes SQL-based analytics:
-
-- Basic taxi trip analytics.
-- Daily trip analytics.
-- Aggregated trip metrics.
-
-SQL scripts are available in the `sql/` directory.
-
-## 🚀 Future Enhancements
-
-- AWS S3 for cloud data storage.
-- AWS Athena for serverless SQL analytics.
-- Power BI dashboard for interactive visualization.
-- Cloud-based ETL orchestration.
-- Automated monitoring and alerting.
+*These are planned extensions and are not currently implemented.*
 
 ## 👨‍💻 Author
 
 **Bharat Shinde**
 
-GitHub: [Shinde-Bharat](https://github.com/Shinde-Bharat)
+🎓 Information Technology Graduate | M.Tech Computer Engineering Student
 
-Project Repository: [NYC Taxi Data Engineering](https://github.com/Shinde-Bharat/nyc-taxi-data-engineering)
+🔗 GitHub: [Shinde-Bharat](https://github.com/Shinde-Bharat)
 
 ---
 
-⭐ If you find this project useful, consider giving it a star!
+⭐ If you find this project interesting, consider giving it a star!
